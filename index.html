@@ -9,6 +9,7 @@
     <script src="questions.js" defer></script>
     <script src="backgrounds.js" defer></script>
     <script src="music.js" defer></script>
+    <script src="storage.js" defer></script>
     <script src="app.js" defer></script>
   </head>
   <body>
@@ -23,9 +24,23 @@
           <button id="music-toggle" class="music-toggle" type="button" aria-pressed="true" aria-label="Фоновая музыка" aria-describedby="music-status">Музыка: вкл.</button>
         </div>
       </header>
+      <div class="section-tabs" role="tablist" aria-label="Разделы квиза">
+        <button id="tab-play" type="button" role="tab" aria-controls="quiz-play" aria-selected="true">Игра</button>
+        <button id="tab-rules" type="button" role="tab" aria-controls="quiz-rules" aria-selected="false" tabindex="-1">Правила</button>
+        <button id="tab-features" type="button" role="tab" aria-controls="quiz-features" aria-selected="false" tabindex="-1">Возможности</button>
+      </div>
+      <p id="tab-timer-notice" class="tab-timer-notice" role="status" hidden>Таймер вопроса продолжает идти. Вернитесь во вкладку «Игра», чтобы ответить.</p>
       <p id="music-status" class="music-status" role="status">Музыка начнётся после первого нажатия. Вы можете её выключить.</p>
+      <p id="storage-status" class="storage-status" role="status"></p>
+      <aside id="leader-banner" class="leader-banner" aria-labelledby="leader-label" hidden>
+        <span id="leader-label" class="eyebrow">Лидер рейтинга</span>
+        <strong id="rating-leader" class="rating-leader"></strong>
+        <span id="leader-points" class="leader-points"></span>
+        <span id="leader-time" class="leader-time"></span>
+      </aside>
 
       <main>
+        <div id="quiz-play" role="tabpanel" aria-labelledby="tab-play" tabindex="0">
         <section id="setup-screen" aria-labelledby="welcome-title">
           <div class="intro">
             <div class="intro-copy">
@@ -72,60 +87,34 @@
                   </div>
                 </div>
                 <div id="team-inputs" class="team-inputs"></div>
+                <datalist id="saved-team-names"></datalist>
+                <p class="setting-note">Названия запоминаются в этом браузере. Одинаковое имя без учёта регистра — одна команда в рейтинге.</p>
               </div>
-              <fieldset class="length-field">
-                <legend>Сколько играем?</legend>
-                <label class="mode-option">
-                  <input type="radio" name="rounds" value="3">
-                  <span><strong>На разогрев</strong><small>3 вопроса каждой команде</small></span>
-                  <span class="mode-icon" aria-hidden="true">☕</span>
-                </label>
-                <label class="mode-option">
-                  <input type="radio" name="rounds" value="5" checked>
-                  <span><strong>Ещё одну серию</strong><small>5 вопросов каждой команде</small></span>
-                  <span class="mode-icon" aria-hidden="true">✦</span>
-                </label>
-              </fieldset>
+              <div class="game-format">
+                <span class="eyebrow">Вызов для знатоков</span>
+                <h3>10 вопросов каждой команде</h3>
+                <p>Сначала одна команда отвечает на свои 10 вопросов подряд, затем следующая.</p>
+                <p class="setting-note">При равном первом месте — серия пенальти: по 5 вопросов каждой претендующей команде, ответы по очереди. Если снова равенство — по одному вопросу до решающего раунда.</p>
+                <p id="question-bank-info" class="setting-note" aria-live="polite"></p>
+                <p class="setting-note">Сначала выбираем ещё не отвеченные вопросы. Если их мало, добавляем знакомые. В тай-брейке повторы возможны только после исчерпания банка.</p>
+              </div>
             </div>
-            <fieldset class="difficulty-field" aria-describedby="question-bank-info difficulty-hint">
-              <legend>Насколько хорошо вы знаете сериал?</legend>
-              <div class="difficulty-options">
-                <label class="mode-option">
-                  <input type="radio" name="difficulty" value="mixed" checked>
-                  <span><strong>Всего понемногу</strong><small>Все уровни вперемешку</small></span>
-                </label>
-                <label class="mode-option">
-                  <input type="radio" name="difficulty" value="easy">
-                  <span><strong>Лёгкий</strong><small>Знакомимся с компанией</small></span>
-                </label>
-                <label class="mode-option">
-                  <input type="radio" name="difficulty" value="medium">
-                  <span><strong>Средний</strong><small>Для любителей сериала</small></span>
-                </label>
-                <label class="mode-option">
-                  <input type="radio" name="difficulty" value="hard">
-                  <span><strong>Сложный</strong><small>Шелдон бы оценил</small></span>
-                </label>
-              </div>
-              <p id="question-bank-info" class="setting-note" aria-live="polite"></p>
-              <p id="difficulty-hint" class="setting-note">В смешанном режиме у всех команд одинаковый набор уровней. За любой верный ответ — 1 балл.</p>
-            </fieldset>
             <fieldset class="timer-field" aria-describedby="timer-hint">
               <legend>В каком темпе играем?</legend>
               <div class="timer-options">
                 <label class="mode-option">
-                  <input type="radio" name="time-limit" value="0" checked>
+                  <input type="radio" name="time-limit" value="0">
                   <span><strong>Без спешки</strong><small>Без ограничения времени</small></span>
                 </label>
                 <label class="mode-option">
-                  <input type="radio" name="time-limit" value="10">
-                  <span><strong>На скорость</strong><small>10 секунд на каждый вопрос</small></span>
+                  <input type="radio" name="time-limit" value="15" checked>
+                  <span><strong>На скорость</strong><small>15 секунд на каждый вопрос</small></span>
                 </label>
               </div>
               <p id="timer-hint" class="setting-note">В режиме на скорость отсчёт начинается при появлении вопроса и не останавливается при смене вкладки. Время вышло — 0 баллов и показ верного ответа. Дальше переходите сами.</p>
             </fieldset>
             <div class="start-row">
-              <p><strong>Всё просто:</strong> отвечайте по очереди.<br>Верный ответ = 1 балл. Подсматривать нельзя, спорить можно.</p>
+              <p><strong>Всё просто:</strong> по 10 вопросов подряд каждой команде.<br>Верный ответ = 1 балл. Подсматривать нельзя, спорить можно.</p>
               <button class="button button-primary" type="submit">Поехали! <span aria-hidden="true">↗</span></button>
             </div>
           </form>
@@ -138,6 +127,13 @@
             <span id="round-label" class="eyebrow"></span>
           </div>
           <div id="scoreboard" class="scoreboard" aria-label="Счёт команд"></div>
+          <section id="overtime-panel" class="overtime-panel" aria-labelledby="overtime-title" hidden>
+            <h2 id="overtime-title">Тай-брейк: серия пенальти</h2>
+            <p id="overtime-status" class="setting-note" role="status"></p>
+            <p class="setting-note">✓ Верно · × Ошибка · ○ Ожидает ответа. Сначала все получают по 5 попыток по очереди, без досрочного завершения. При равенстве лучших результатов — по одной попытке: ошибившиеся выбывают после ответов всего раунда, если кто-то ответил верно. Если все ошиблись или все ответили верно — новый раунд.</p>
+            <div id="penalty-list" class="penalty-list"></div>
+            <p id="overtime-repeat-note" class="setting-note" hidden>Банк вопросов исчерпан: серия продолжается с повторными вопросами.</p>
+          </section>
           <div class="question-card">
             <div class="question-content">
               <div class="question-meta">
@@ -156,12 +152,12 @@
               <div class="question-intro">
                 <div class="question-tags">
                   <span id="question-category" class="eyebrow"></span>
-                  <span id="question-difficulty" class="difficulty-badge"></span>
                 </div>
                 <h2 id="question-title" tabindex="-1"></h2>
               </div>
               <p id="question-hint" class="question-hint">Обсудите всей командой и выберите один ответ.</p>
-              <div class="answers-stage">
+              <div id="answers-stage" class="answers-stage">
+                <p id="timer-urgency" class="timer-urgency" role="status" aria-atomic="true"></p>
                 <div class="question-backdrop" aria-hidden="true">
                   <img id="background-photo" alt="" width="1280" height="960">
                 </div>
@@ -185,15 +181,96 @@
           <span class="result-star" aria-hidden="true">✳</span>
           <span class="eyebrow">Эксперимент завершён</span>
           <h1 id="results-title" tabindex="-1">Базинга!</h1>
-          <p id="result-difficulty" class="eyebrow"></p>
+          <p id="result-format" class="eyebrow"></p>
           <p id="result-summary" class="lead"></p>
           <div id="results-list" class="results-list" aria-label="Итоговый счёт"></div>
-          <p class="result-note">Главное открытие вечера: вместе играть веселее.</p>
+          <p class="result-note">Очки этой партии добавлены в рейтинг команд ниже. Главное открытие вечера: вместе играть веселее.</p>
           <div class="result-actions">
             <button id="play-again" class="button button-primary" type="button">Ещё партию ↗</button>
             <button id="change-settings" class="button button-secondary" type="button">Изменить команды</button>
           </div>
         </section>
+      <details class="local-stats">
+        <summary>Рейтинг команд в этом браузере</summary>
+        <p class="setting-note">За завершённую партию: +1 за каждый верный ответ, включая тай-брейк, +5 за победу. В одиночной игре — только очки за ответы. Рейтинг сохраняется после определения победителя. Старые бонусы за ничьи сохранены.</p>
+        <p class="setting-note">Победителя партии определяют верные ответы и тай-брейк, а не скорость. Только в общем рейтинге при равных очках сравниваем среднее время всех ответов, включая неверные и тай-брейк. Выход за таймер считается как 15 секунд. Время округляется до миллисекунд.</p>
+        <p class="setting-note">Старые очки сохранены. Для партий без замеров время не вычисляется задним числом: «—» означает отсутствие данных. При равных очках команда с замерами выше команды без них.</p>
+        <p id="rating-empty" class="setting-note">Завершите первую партию, чтобы появился рейтинг.</p>
+        <div id="rating-table-wrap" class="rating-table-wrap" tabindex="0" role="region" aria-label="Рейтинг команд" hidden>
+          <table class="rating-table">
+            <caption>Общий рейтинг</caption>
+            <thead><tr><th scope="col">Команда</th><th scope="col">Очки</th><th scope="col">Среднее время</th><th scope="col">Игры</th><th scope="col">Победы</th><th scope="col">Верно</th><th scope="col">Точность</th></tr></thead>
+            <tbody id="rating-list"></tbody>
+          </table>
+        </div>
+        <p id="answered-count" class="setting-note"></p>
+        <p class="setting-note">Данные хранятся только в localStorage этого сайта и браузера, без аккаунта и синхронизации. Очистка данных браузера удалит их. Отвеченные вопросы запоминаются даже при выходе из незавершённой партии.</p>
+        <div id="rating-actions" class="rating-actions" hidden>
+          <button id="reset-ratings" class="button button-secondary" type="button">Очистить только рейтинг</button>
+          <button id="reset-local-data" class="text-button" type="button">Сбросить команды, рейтинг и историю вопросов</button>
+        </div>
+      </details>
+        </div>
+      <section id="quiz-rules" class="help-section" role="tabpanel" aria-labelledby="tab-rules" tabindex="0" hidden>
+        <span class="eyebrow">Как играть</span>
+        <h2 id="rules-title">Правила вечера</h2>
+        <ol class="rules-list">
+          <li><strong>Соберите 1–6 команд.</strong> Игра проходит на одном экране. Названия должны отличаться.</li>
+          <li><strong>По 10 вопросов подряд.</strong> Сначала весь свой блок проходит первая команда, затем вторая и остальные. Выберите один из четырёх ответов: верный приносит 1 балл.</li>
+          <li><strong>Выберите темп.</strong> По умолчанию на ответ есть 15 секунд. Можно играть без ограничения. На последних трёх секундах появится подсказка поторопиться. Переключение вкладки не останавливает отсчёт; время вышло — ошибка.</li>
+          <li><strong>Прочитайте объяснение.</strong> После ответа показываем правильный вариант и пояснение. Следующий вопрос открывается кнопкой — время чтения не учитывается в скорости ответа.</li>
+          <li><strong>Равное первое место? Серия пенальти.</strong> Только лидеры получают по 5 дополнительных вопросов, отвечая по очереди. Все завершают пять попыток, даже если кого-то уже нельзя догнать. Побеждает команда с большим числом верных ответов.</li>
+          <li><strong>Снова равенство — до решающего раунда.</strong> Оставшиеся лидеры отвечают по одному вопросу. После ответов всего раунда ошибившиеся выбывают, если кто-то ответил верно. Если все ошиблись или все ответили верно, раунд повторяется — до одного победителя.</li>
+        </ol>
+        <p class="help-callout">Рейтинг: +1 за каждый верный ответ, включая пенальти, и +5 за победу. В одиночной игре — только очки за ответы. Скорость не определяет победителя партии: среднее время используется лишь при равных очках в общем рейтинге.</p>
+      </section>
+
+      <section id="quiz-features" class="help-section" role="tabpanel" aria-labelledby="tab-features" tabindex="0" hidden>
+        <span class="eyebrow">Что умеет квиз</span>
+        <h2 id="features-title">Всё для игрового вечера</h2>
+        <div class="feature-cards">
+          <article><h3>Вопросы и объяснения</h3><p>Банк из 500 вопросов. Сначала выбираем ещё не отвеченные; если их мало, добавляем знакомые. В долгом тай-брейке новый круг начинается только после исчерпания банка.</p></article>
+          <article><h3>Команды под рукой</h3><p>Названия и число команд восстанавливаются при следующем открытии. Имена из рейтинга доступны в подсказках. Имя без учёта регистра — одна команда; новое имя создаёт отдельную запись.</p></article>
+          <article><h3>Рейтинг и скорость</h3><p>Очки, победы, число игр, точность и среднее время ответа. Лидер виден крупно сверху. Учитываем все ответы, включая неверные и пенальти; тайм-аут считается как 15 секунд.</p></article>
+          <article><h3>Пенальти как в футболе</h3><p>Пять кружков попыток, затем дополнительные раунды: ✓ — верно, × — ошибка, ○ — очередь ещё не дошла. Текущая попытка выделена, выбывшие команды отмечены.</p></article>
+          <article><h3>Музыка и атмосфера</h3><p>Тихая музыка в меню, более напряжённая во время игры. Запускается после первого нажатия, отключается кнопкой в шапке и затихает в скрытой вкладке. Анимация таймера учитывает настройку уменьшения движения.</p></article>
+          <article><h3>Управление своими данными</h3><p>Можно очистить только рейтинг, сохранив команды и историю вопросов, либо сбросить всё. Кнопки доступны при наличии рейтинга и вне игры; удаление требует подтверждения.</p></article>
+        </div>
+        <p class="help-callout">Всё сохраняется только в этом браузере на этом адресе сайта, без аккаунта и синхронизации. Очистка данных браузера удалит историю. Отвеченные вопросы запоминаются сразу, рейтинг — только после завершения партии. Текущая партия после перезагрузки не восстанавливается.</p>
+        <p class="setting-note">Разделы справки и скриншоты не ставят активный вопрос на паузу. Открывайте их до начала партии или после ответа.</p>
+      <section id="quiz-screenshots" class="feature-screenshots" aria-labelledby="screenshots-title">
+        <span class="eyebrow">Посмотрите, как это работает</span>
+        <h2 id="screenshots-title">Квиз в картинках</h2>
+        <p class="setting-note">Скриншоты интерфейса с демонстрационными командами и результатами. Нажмите на изображение, чтобы открыть его крупнее в новой вкладке.</p>
+        <div class="screenshot-grid">
+          <figure>
+            <a href="assets/screenshots/setup.jpg" target="_blank" rel="noopener noreferrer" aria-label="Открыть скриншот настройки игры в новой вкладке">
+              <img src="assets/screenshots/setup.jpg" width="1280" height="900" loading="lazy" decoding="async" alt="Настройка команд и выбор игры с таймером или без ограничения времени">
+            </a>
+            <figcaption><strong>Перед началом.</strong> Команды, формат партии и выбор темпа.</figcaption>
+          </figure>
+          <figure>
+            <a href="assets/screenshots/game.jpg" target="_blank" rel="noopener noreferrer" aria-label="Открыть скриншот вопроса в новой вкладке">
+              <img src="assets/screenshots/game.jpg" width="1280" height="900" loading="lazy" decoding="async" alt="Экран вопроса: счёт команд, таймер и четыре варианта ответа на фоне декораций">
+            </a>
+            <figcaption><strong>Ваш вопрос.</strong> Всё нужное для ответа на одном экране.</figcaption>
+          </figure>
+          <figure>
+            <a href="assets/screenshots/penalties.jpg" target="_blank" rel="noopener noreferrer" aria-label="Открыть скриншот серии пенальти в новой вкладке">
+              <img src="assets/screenshots/penalties.jpg" width="1280" height="900" loading="lazy" decoding="async" alt="Серия пенальти с зелёными верными ответами, красными ошибками и пустыми кружками будущих попыток">
+            </a>
+            <figcaption><strong>Борьба за победу.</strong> Поочерёдные попытки и наглядная история серии.</figcaption>
+          </figure>
+          <figure>
+            <a href="assets/screenshots/rating.jpg" target="_blank" rel="noopener noreferrer" aria-label="Открыть скриншот рейтинга в новой вкладке">
+              <img src="assets/screenshots/rating.jpg" width="1280" height="900" loading="lazy" decoding="async" alt="Таблица рейтинга демонстрационных команд с очками, временем ответа, победами и точностью">
+            </a>
+            <figcaption><strong>Общий рейтинг.</strong> Статистика завершённых партий и очистка данных.</figcaption>
+          </figure>
+        </div>
+        <p class="setting-note">На игровых скриншотах использованы те же фотографии декораций, что и в квизе. Авторы и лицензии указаны ниже.</p>
+      </section>
+      </section>
       </main>
       <details class="photo-credits">
         <summary>Фотографии декораций и лицензии</summary>

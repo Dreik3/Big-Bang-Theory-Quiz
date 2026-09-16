@@ -3,7 +3,7 @@ import { JSDOM } from "jsdom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const html = readFileSync(new URL("./index.html", import.meta.url), "utf8");
-const scripts = ["questions.js", "backgrounds.js", "music.js", "app.js"]
+const scripts = ["questions.js", "backgrounds.js", "music.js", "storage.js", "app.js"]
   .map((file) => readFileSync(new URL(file, import.meta.url), "utf8")).join("\n");
 
 describe("background music", () => {
@@ -15,7 +15,7 @@ describe("background music", () => {
   beforeEach(() => {
     sources = [];
     gains = [];
-    dom = new JSDOM(html, { runScripts: "outside-only", pretendToBeVisual: true });
+    dom = new JSDOM(html, { url: "https://quiz.test", runScripts: "outside-only", pretendToBeVisual: true });
     dom.window.scrollTo = vi.fn();
     dom.window.confirm = () => true;
     dom.window.AudioContext = class {
@@ -66,7 +66,7 @@ describe("background music", () => {
     await settle();
     expect(sources).toHaveLength(1);
     expect(sources[0].loop).toBe(true);
-    expect(gains[0].gain.linearRampToValueAtTime).toHaveBeenCalledWith(0.12, 1.2);
+    expect(gains[0].gain.linearRampToValueAtTime).toHaveBeenCalledWith(0.06, 1.2);
     const data = sources[0].buffer.getChannelData(0);
     let peak = 0;
     for (const value of data) {
@@ -84,7 +84,7 @@ describe("background music", () => {
     dom.window.document.body.click();
     await settle();
     const gameBuffer = sources[0].buffer;
-    expect(gains[0].gain.linearRampToValueAtTime).toHaveBeenCalledWith(0.18, 1.2);
+    expect(gains[0].gain.linearRampToValueAtTime).toHaveBeenCalledWith(0.09, 1.2);
     dom.window.document.querySelector(".answer").click();
     dom.window.document.getElementById("next-question").click();
     expect(sources).toHaveLength(1);
@@ -93,7 +93,7 @@ describe("background music", () => {
     expect(sources[0].stop).toHaveBeenCalledWith(0.6);
     expect(sources[1].buffer).not.toBe(gameBuffer);
     expect(sources[1].buffer.duration).toBeGreaterThan(gameBuffer.duration);
-    expect(gains[1].gain.linearRampToValueAtTime).toHaveBeenCalledWith(0.12, 1.2);
+    expect(gains[1].gain.linearRampToValueAtTime).toHaveBeenCalledWith(0.06, 1.2);
     sources[0].onended();
     expect(sources[0].disconnect).toHaveBeenCalled();
     expect(gains[0].disconnect).toHaveBeenCalled();
@@ -139,10 +139,11 @@ describe("background music", () => {
       .dispatchEvent(new dom.window.Event("submit", { bubbles: true, cancelable: true }));
     dom.window.document.body.click();
     await settle();
-    while (dom.window.document.getElementById("results-screen").hidden) {
-      dom.window.document.querySelector(".answer").click();
+    for (let index = 0; index < 20; index += 1) {
+      dom.window.document.querySelector(`.answer[data-correct="${index < 10}"]`).click();
       dom.window.document.getElementById("next-question").click();
     }
+    expect(dom.window.document.getElementById("results-screen").hidden).toBe(false);
     expect(dom.window.testMusic.track.scene).toBe("menu");
     dom.window.document.getElementById("play-again").click();
     expect(dom.window.testMusic.track.scene).toBe("game");
@@ -170,7 +171,7 @@ describe("background music", () => {
 
   it("keeps the quiz usable when Web Audio is unavailable", () => {
     dom.window.close();
-    dom = new JSDOM(html, { runScripts: "outside-only", pretendToBeVisual: true });
+    dom = new JSDOM(html, { url: "https://quiz.test", runScripts: "outside-only", pretendToBeVisual: true });
     dom.window.eval(scripts);
     expect(dom.window.document.getElementById("music-toggle").disabled).toBe(true);
     expect(dom.window.document.getElementById("music-status").textContent).not.toBe("");

@@ -52,7 +52,7 @@ class BackgroundMusic {
     gain.connect(this.context.destination);
     const now = this.context.currentTime;
     gain.gain.setValueAtTime(0, now);
-    gain.gain.linearRampToValueAtTime(this.scene === "menu" ? 0.12 : 0.18, now + 1.2);
+    gain.gain.linearRampToValueAtTime(this.scene === "menu" ? 0.06 : 0.09, now + 1.2);
     source.onended = () => {
       source.disconnect();
       gain.disconnect();
