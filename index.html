@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f5f1e8">
+    <title>Базинга! — семейный квиз</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="questions.js" defer></script>
+    <script src="backgrounds.js" defer></script>
+    <script src="music.js" defer></script>
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <div class="page">
+      <header class="site-header">
+        <a class="brand" href="./index.html" aria-label="Базинга! — на главную">
+          <span class="brand-icon" aria-hidden="true">✳</span> базинга<span class="brand-dot">!</span>
+        </a>
+        <span class="header-note">Диван. Друзья. Немного науки.</span>
+        <div class="header-controls">
+          <span class="edition">СЕМЕЙНЫЙ КВИЗ</span>
+          <button id="music-toggle" class="music-toggle" type="button" aria-pressed="true" aria-label="Фоновая музыка" aria-describedby="music-status">Музыка: вкл.</button>
+        </div>
+      </header>
+      <p id="music-status" class="music-status" role="status">Музыка начнётся после первого нажатия. Вы можете её выключить.</p>
+
+      <main>
+        <section id="setup-screen" aria-labelledby="welcome-title">
+          <div class="intro">
+            <div class="intro-copy">
+              <span class="eyebrow"><span class="status-dot"></span> Вечер в хорошей компании</span>
+              <h1 id="welcome-title">У этого вечера<br>большая <span class="highlight">теория.</span></h1>
+              <p class="lead">Кто лучше помнит Шелдона и компанию? Собирайтесь на диване — сыграем в квиз по «Теории большого взрыва».</p>
+              <div class="feature-row">
+                <span>✦ 1–6 команд</span>
+                <span>◷ С таймером и без</span>
+                <span>♡ Для своих</span>
+              </div>
+            </div>
+            <div class="hero-art" aria-hidden="true">
+              <span class="art-note note-top">вечер науки<br>и несерьёзных споров</span>
+              <div class="atom">
+                <span class="orbit orbit-one"></span>
+                <span class="orbit orbit-two"></span>
+                <span class="orbit orbit-three"></span>
+                <span class="nucleus">B!</span>
+                <span class="electron electron-one"></span>
+                <span class="electron electron-two"></span>
+                <span class="electron electron-three"></span>
+              </div>
+              <span class="art-spark spark-one">✳</span>
+              <span class="art-spark spark-two">✦</span>
+              <span class="art-sticker">ЭТО МОЁ МЕСТО.</span>
+              <span class="art-note note-bottom">почти научный способ<br>выбрать знатока сериала</span>
+            </div>
+          </div>
+
+          <form id="setup-form" class="setup-card">
+            <div class="card-heading">
+              <div><span class="eyebrow">01 / Собираем компанию</span><h2>Кто сегодня играет?</h2></div>
+              <p>По одному или командами.<br>Один экран на всех.</p>
+            </div>
+            <div class="setup-grid">
+              <div>
+                <div class="field-heading">
+                  <span id="teams-label">Игроки или команды</span>
+                  <div class="stepper" role="group" aria-labelledby="teams-label">
+                    <button id="remove-team" type="button" aria-label="Убрать команду">−</button>
+                    <output id="team-count" aria-live="polite">2</output>
+                    <button id="add-team" type="button" aria-label="Добавить команду">+</button>
+                  </div>
+                </div>
+                <div id="team-inputs" class="team-inputs"></div>
+              </div>
+              <fieldset class="length-field">
+                <legend>Сколько играем?</legend>
+                <label class="mode-option">
+                  <input type="radio" name="rounds" value="3">
+                  <span><strong>На разогрев</strong><small>3 вопроса каждой команде</small></span>
+                  <span class="mode-icon" aria-hidden="true">☕</span>
+                </label>
+                <label class="mode-option">
+                  <input type="radio" name="rounds" value="5" checked>
+                  <span><strong>Ещё одну серию</strong><small>5 вопросов каждой команде</small></span>
+                  <span class="mode-icon" aria-hidden="true">✦</span>
+                </label>
+              </fieldset>
+            </div>
+            <fieldset class="difficulty-field" aria-describedby="question-bank-info difficulty-hint">
+              <legend>Насколько хорошо вы знаете сериал?</legend>
+              <div class="difficulty-options">
+                <label class="mode-option">
+                  <input type="radio" name="difficulty" value="mixed" checked>
+                  <span><strong>Всего понемногу</strong><small>Все уровни вперемешку</small></span>
+                </label>
+                <label class="mode-option">
+                  <input type="radio" name="difficulty" value="easy">
+                  <span><strong>Лёгкий</strong><small>Знакомимся с компанией</small></span>
+                </label>
+                <label class="mode-option">
+                  <input type="radio" name="difficulty" value="medium">
+                  <span><strong>Средний</strong><small>Для любителей сериала</small></span>
+                </label>
+                <label class="mode-option">
+                  <input type="radio" name="difficulty" value="hard">
+                  <span><strong>Сложный</strong><small>Шелдон бы оценил</small></span>
+                </label>
+              </div>
+              <p id="question-bank-info" class="setting-note" aria-live="polite"></p>
+              <p id="difficulty-hint" class="setting-note">В смешанном режиме у всех команд одинаковый набор уровней. За любой верный ответ — 1 балл.</p>
+            </fieldset>
+            <fieldset class="timer-field" aria-describedby="timer-hint">
+              <legend>В каком темпе играем?</legend>
+              <div class="timer-options">
+                <label class="mode-option">
+                  <input type="radio" name="time-limit" value="0" checked>
+                  <span><strong>Без спешки</strong><small>Без ограничения времени</small></span>
+                </label>
+                <label class="mode-option">
+                  <input type="radio" name="time-limit" value="10">
+                  <span><strong>На скорость</strong><small>10 секунд на каждый вопрос</small></span>
+                </label>
+              </div>
+              <p id="timer-hint" class="setting-note">В режиме на скорость отсчёт начинается при появлении вопроса и не останавливается при смене вкладки. Время вышло — 0 баллов и показ верного ответа. Дальше переходите сами.</p>
+            </fieldset>
+            <div class="start-row">
+              <p><strong>Всё просто:</strong> отвечайте по очереди.<br>Верный ответ = 1 балл. Подсматривать нельзя, спорить можно.</p>
+              <button class="button button-primary" type="submit">Поехали! <span aria-hidden="true">↗</span></button>
+            </div>
+          </form>
+          <p class="below-card">Никаких регистраций. Выбирайте свой темп — и играйте вместе.</p>
+        </section>
+
+        <section id="game-screen" hidden aria-labelledby="question-title">
+          <div class="game-toolbar">
+            <button id="leave-game" class="text-button" type="button">← К настройкам</button>
+            <span id="round-label" class="eyebrow"></span>
+          </div>
+          <div id="scoreboard" class="scoreboard" aria-label="Счёт команд"></div>
+          <div class="question-card">
+            <div class="question-content">
+              <div class="question-meta">
+                <span id="turn-label" class="turn-label"></span>
+                <div class="question-indicators">
+                  <div id="question-timer" class="question-timer" role="timer" aria-live="off" hidden>
+                    <span id="timer-value">10 с</span>
+                    <span class="timer-track" aria-hidden="true"><span id="timer-fill"></span></span>
+                  </div>
+                  <span id="question-counter"></span>
+                </div>
+              </div>
+              <div id="progress" class="progress" role="progressbar" aria-label="Отвечено вопросов" aria-valuemin="0" aria-valuenow="0">
+                <div id="progress-fill"></div>
+              </div>
+              <div class="question-intro">
+                <div class="question-tags">
+                  <span id="question-category" class="eyebrow"></span>
+                  <span id="question-difficulty" class="difficulty-badge"></span>
+                </div>
+                <h2 id="question-title" tabindex="-1"></h2>
+              </div>
+              <p id="question-hint" class="question-hint">Обсудите всей командой и выберите один ответ.</p>
+              <div class="answers-stage">
+                <div class="question-backdrop" aria-hidden="true">
+                  <img id="background-photo" alt="" width="1280" height="960">
+                </div>
+                <div id="answers" class="answers"></div>
+              </div>
+              <div id="feedback" class="feedback" role="status" aria-live="polite" aria-atomic="true"></div>
+              <div class="question-bottom">
+                <button id="next-question" class="button button-primary" type="button" hidden>Дальше →</button>
+              </div>
+            </div>
+            <p id="background-status" class="background-status" role="status"></p>
+            <p class="background-credit"><span id="scene-name"></span> · Фото:
+              <a id="background-author" target="_blank" rel="noopener noreferrer"></a> ·
+              <a id="background-license" target="_blank" rel="noopener noreferrer"></a> ·
+              <a id="background-source" target="_blank" rel="noopener noreferrer">Источник</a>
+            </p>
+          </div>
+        </section>
+
+        <section id="results-screen" class="results-screen" hidden aria-labelledby="results-title">
+          <span class="result-star" aria-hidden="true">✳</span>
+          <span class="eyebrow">Эксперимент завершён</span>
+          <h1 id="results-title" tabindex="-1">Базинга!</h1>
+          <p id="result-difficulty" class="eyebrow"></p>
+          <p id="result-summary" class="lead"></p>
+          <div id="results-list" class="results-list" aria-label="Итоговый счёт"></div>
+          <p class="result-note">Главное открытие вечера: вместе играть веселее.</p>
+          <div class="result-actions">
+            <button id="play-again" class="button button-primary" type="button">Ещё партию ↗</button>
+            <button id="change-settings" class="button button-secondary" type="button">Изменить команды</button>
+          </div>
+        </section>
+      </main>
+      <details class="photo-credits">
+        <summary>Фотографии декораций и лицензии</summary>
+        <p>Фотографии декораций «Теории большого взрыва» на студии Warner Bros. в Бербанке, а не кадры из эпизодов. Источник — Wikimedia Commons.</p>
+        <p>Все фотографии доступны по лицензии <a href="https://creativecommons.org/licenses/by/2.0/" target="_blank" rel="noopener noreferrer">CC BY 2.0</a>. В приложении уменьшены; при показе применяются кадрирование, лёгкое размытие и осветление. Авторы не связаны с этим квизом.</p>
+        <ul id="photo-credit-list"></ul>
+      </details>
+      <footer><span>Сделано для вечеров вместе <span aria-hidden="true">♡</span></span><span>Неофициальный фанатский квиз · Возможны спойлеры</span></footer>
+    </div>
+    <noscript><p class="noscript">Для игры нужен JavaScript. Включите его в настройках браузера.</p></noscript>
+  </body>
+</html>
